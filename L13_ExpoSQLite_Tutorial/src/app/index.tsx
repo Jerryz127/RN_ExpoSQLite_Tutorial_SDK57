@@ -38,6 +38,9 @@ export default function App() {
   const [quantity, setQuantity] = useState<string>("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const clearSearch = () => {
+    setSearch("");
+  };
   /**
    * Database State
    *
@@ -45,7 +48,11 @@ export default function App() {
    * When this updates, React re-renders the FlatList to show the new data.
    */
   const [items, setItems] = useState<Item[]>([]);
-
+  const sortedItems = () => {
+    setItems((currentItems) =>
+      [...currentItems].sort((a, b) => a.name.localeCompare(b.name)),
+    );
+  };
   const filteredItems = items.filter((item) =>
     item.name.toLowerCase().includes(search.toLowerCase()),
   );
@@ -216,25 +223,24 @@ export default function App() {
         Save Button
         Triggers the saveOrUpdate function which validates and saves to database.
       */}
-      <Button
-        title={editingId === null ? "Save Item" : "Update Item"}
-        onPress={saveOrUpdate}
-      />
+      <View style={{ flexDirection: "row", gap: 50 }}>
+        <Button
+          title={editingId === null ? "Save Item" : "Update Item"}
+          onPress={saveOrUpdate}
+        />
+        <Button title={"Sort Items"} onPress={sortedItems} />
+      </View>
       <TextInput
         style={styles.input}
         placeholder="Search items..."
         value={search}
         onChangeText={setSearch}
       />
-      {filteredItems.map((item) => (
-        <View key={item.id}>
-          <Text>{item.name}</Text>
-          <Text>Quantity: {item.quantity}</Text>
-        </View>
-      ))}
+      <Button title={"Clear Search"} onPress={clearSearch} />
+
       <FlatList
         style={styles.list}
-        data={items}
+        data={filteredItems}
         keyExtractor={(item) => item.id.toString()}
         ItemSeparatorComponent={() => (
           <View
@@ -256,13 +262,10 @@ export default function App() {
         )}
         ListEmptyComponent={
           <Text style={{ textAlign: "center", marginTop: 24, color: "#888" }}>
-            No items yet. Add your first one above.
+            {search
+              ? "No matching items found."
+              : "No items yet. Add your first one above."}
           </Text>
-        }
-        contentContainerStyle={
-          items.length === 0
-            ? { flexGrow: 1, justifyContent: "center" }
-            : undefined
         }
       />
     </View>
